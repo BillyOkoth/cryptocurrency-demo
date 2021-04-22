@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fromFetch } from "rxjs/fetch";
+import { webSocket } from "rxjs/webSocket";
 import { Table, Tag, Space } from "antd";
 import "./app.css";
 
@@ -8,6 +9,9 @@ let requestOptions = { method: "GET", redirect: "follow" };
 const dataAssets$ = fromFetch(
   "https://api.coincap.io/v2/assets",
   requestOptions
+);
+const websocketObservable$ = webSocket(
+  "wss://ws.coincap.io/prices?assets=bitcoin,ethereum,monero,litecoin"
 );
 const columns = [
   {
@@ -54,18 +58,24 @@ const columns = [
   },
 ];
 
+
 const App = () => {
   const [assets, setAssets] = useState([]);
-  console.log(assets);
   useEffect(async () => {
     dataAssets$.subscribe((res) =>
       res.json().then((data) => setAssets(data.data))
     );
 
+    websocketObservable$.subscribe(
+      (res)=>console.log('message received',res)
+    )
+
     return () => {
       dataAssets$.unsubscribe();
+      websocketObservable$.unsubscribe();
     };
   }, []);
+  
   return (
     <div>
       <Table
