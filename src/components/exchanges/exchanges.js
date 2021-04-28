@@ -24,11 +24,22 @@ const columns = [
       title: "Volume 24hrs",
       dataIndex: "volumeUsd",
       key: "volumeUsd",
+      render:value=>{
+        let volumeUsdFloat= parseFloat(value)/1.0e8;
+        let renderValue = volumeUsdFloat.toFixed(2);
+      return<span>{renderValue}B</span>
+
+      }
     },
     {
       title: "Total(%)",
       dataIndex: "percentTotalVolume",
       key: "percentTotalVolume",
+      render:(value)=>{
+        let totalFloat = parseFloat(value);
+        let renderValue = totalFloat.toFixed(2);
+        return <span>{renderValue}%</span>
+      }
     },
     {
         title: "Status",
@@ -56,7 +67,7 @@ const Exchanges = () =>{
       return () => {
         dataAssets$.unsubscribe();
         websocketObservable$.unsubscribe();
-        console.log('unsubsribed')
+       
       };
     }, []);
 
