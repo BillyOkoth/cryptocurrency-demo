@@ -66,8 +66,7 @@ const Exchanges = () => {
   
   let searchSubject$ = new BehaviorSubject('');
   //filterfunction
-  const filterExchanges = async term =>{
-      
+  const filterExchanges = async term =>{      
     const exchangesResult = await assets.filter(asset=> asset.exchangeId.includes(term));   
     return exchangesResult;
   }  
