@@ -59,57 +59,48 @@ const dataAssets$ = fromFetch(
 );
 //filterfunction. 
 
-const Exchanges = () => {
-  const [assets, setAssets] = useState([]);
-  const [filteredExchanges, setFilteredExchanges] = useState([]);
-  const [search, setSearch] = useState('');
-  
-  let searchSubject$ = new BehaviorSubject('');
+const Exchanges = (props) => {
+  const [assets, setAssets] = useState([]); 
+  const [search, setSearch] = useState('');  
+ 
   //filterfunction
   const filterExchanges = async term =>{      
-    const exchangesResult = await assets.filter(asset=> asset.exchangeId.includes(term));   
-    return exchangesResult;
+     
+     if(term){      
+      let  exchangesResult = await assets.concat().filter(asset=> asset.exchangeId.includes(term));       
+      setAssets(exchangesResult);       
+     } else {
+      dataAssets$.subscribe((res) =>
+      res.json().then((data) => {
+        setAssets(data.data);    
+      })
+    );   
+     }
+      
+   
   }  
   //onchange function.
   const handleChange = (e)=>{
     const newValue = e.target.value;
-    setSearch(newValue.toLowerCase());
-    searchSubject$.next(newValue.toLowerCase()); 
+    setSearch(newValue.toLowerCase());   
+    filterExchanges(newValue.toLowerCase());
+  
   }
-  //observable
-  let searchObservable = searchSubject$.pipe(
-    filter(val=>val.length>1),
-    debounceTime(750),
-     distinctUntilChanged(),
-     mergeMap(val=> filterExchanges(val))   
-  )
+
 
   useEffect(async () => {
-    dataAssets$.subscribe((res) =>
+   await dataAssets$.subscribe((res) =>
       res.json().then((data) => {
-        setAssets(data.data)
-        setFilteredExchanges(data.data)
+        setAssets(data.data);    
       })
     );   
     return () => {
       dataAssets$.unsubscribe();
       websocketObservable$.unsubscribe();
     };
-  }, []);
+  }, [dataAssets$]);
 
-  useEffect(() => {
-      if(!search){
-        setFilteredExchanges(assets);
-      }else {
-        searchObservable.subscribe((result) =>{
-         
-          setFilteredExchanges(result);
-        })
-      }
-    return () => {
-      searchObservable.unsubscribe()
-    }
-  }, [searchObservable,setFilteredExchanges])
+ 
   return (
     <div>
       <div>
@@ -120,20 +111,23 @@ const Exchanges = () => {
         </Row>
       </div>
       <div style={{ marginTop: "2em" }}>
-        {
-          !filteredExchanges.length ? (
-            <Alert message="No Data Available!" type="error" />
-          ):(
-            <Table
+       
+       {  !assets.length ? ( <Alert message="No Data Available!" type="error" />):(
+         <div></div>
+       )        
+       }       
+      
+      <Table
             rowKey="exchangeId"
             columns={columns}
-            dataSource={filteredExchanges}
+            dataSource={assets}
             bordered={true}
             scroll={{ y: 400 }}
             pagination={false}
           />
-          )
-        }  
+
+      
+      
       </div>
     </div>
   );
